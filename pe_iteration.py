@@ -34,42 +34,62 @@ r_dot_n = 0			# エロージョン速度 (mm/s)
 simulation_time = 5 						# シミュレーション時間 (s)
 Ts = 10e-3									# サンプリング周期 (s)
 t = np.linspace(0, simulation_time, int(simulation_time / Ts))
-m_ox = np.zeros([len(t), 1])				# 酸化剤消費量 (Kg)
-P_t = np.zeros([len(t), 1])					# タンク圧 (MPa)
-P_c = np.zeros([len(t), 1])					# 燃焼室圧 (MPa)
-m_dot_ox = np.zeros([len(t), 1])			# 酸化剤流量 (kg/s)
-m_f = np.zeros([len(t), 1])					# 燃料消費量 (kg)
-D_f = np.zeros([len(t), 1])					# ポート径 (mm)
-G_ox = np.zeros([len(t), 1])				# 酸化剤流速 (kg/m^2s)
-r_dot = np.zeros([len(t), 1])				# 燃料後退速度 (mm/s)
-m_dot_f = np.zeros([len(t), 1])				# 燃料流量 (kg/s)
-o_f = np.zeros([len(t), 1])					# OF比 (-)
-eta_c_star_c_star = np.zeros([len(t), 1])	# 特性排気速度 (m/s)
-gamma = np.zeros([len(t), 1])				# 比熱比 (-)
-D_t = np.zeros([len(t), 1])					# スロート径 (mm)
-P_e = np.zeros([len(t), 1])					# ノズル出口圧 (MPa)
-C_f = np.zeros([len(t), 1])					# 推力係数 (-)
-F_t = np.zeros([len(t), 1])					# 推力 (N)
-I_t = np.zeros([len(t), 1])					# 力積 (Ns)
-epsilon_d = np.zeros([len(t), 1])			# 開口比 (-)
-diff_epsilon_d = np.zeros([len(t), 1])		# 開口比誤差 (%)
-P_c_d = np.zeros([len(t), 1])				# 燃焼室圧 (MPa)
-diff_P_c_d = np.zeros([len(t), 1])			# 燃焼室圧誤差 (%)
-
-# 初期値設定
-
+m_ox = np.ones([len(t), 1])					# 酸化剤消費量 (Kg)
+P_t = np.ones([len(t), 1])					# タンク圧 (MPa)
+P_c = np.ones([len(t), 1])*0.5				# 燃焼室圧 (MPa)
+m_dot_ox = np.ones([len(t), 1])				# 酸化剤流量 (kg/s)
+m_f = np.ones([len(t), 1])					# 燃料消費量 (kg)
+D_f = np.ones([len(t), 1])					# ポート径 (mm)
+G_ox = np.ones([len(t), 1])					# 酸化剤流速 (kg/m^2s)
+r_dot = np.ones([len(t), 1])				# 燃料後退速度 (mm/s)
+m_dot_f = np.ones([len(t), 1])				# 燃料流量 (kg/s)
+o_f = np.ones([len(t), 1])*0.5				# OF比 (-)
+eta_c_star_c_star = np.ones([len(t), 1])	# 特性排気速度 (m/s)
+gamma = np.ones([len(t), 1])				# 比熱比 (-)
+D_t = np.ones([len(t), 1])					# スロート径 (mm)
+P_e = np.ones([len(t), 1])					# ノズル出口圧 (MPa)
+C_f = np.ones([len(t), 1])					# 推力係数 (-)
+F_t = np.ones([len(t), 1])					# 推力 (N)
+I_t = np.ones([len(t), 1])					# 力積 (Ns)
+epsilon_d = np.ones([len(t), 1])			# 開口比 (-)
+diff_epsilon_d = np.ones([len(t), 1])		# 開口比誤差 (%)
+P_c_d = np.ones([len(t), 1])				# 燃焼室圧 (MPa)
+diff_P_c_d = np.ones([len(t), 1])			# 燃焼室圧誤差 (%)
 
 # C*csvと比熱比csvを読み込み
-df_c_star = pd.read_csv('cstar.csv', index_col=0)
-df_gamma = pd.read_csv('gamma.csv', index_col=0)
+df_c_star = pd.read_csv('cstar.csv', header=0, index_col=0)
+df_gamma = pd.read_csv('gamma.csv', header=0, index_col=0)
 
-# シミュレーション
-for k in range(len(t)):
+# シミュレーション (1ステップ目)
+m_ox[0, 0] = 0
+P_t[0, 0] = (P_t_f - P_t_i) * 0 / t_b_d + P_t_i
+P_c[0, 0] = 0.5
+
+m = LpProblem() # 数理モデル
+x = LpVariable('P_c', lowBound=0) # 変数
+m += (x - (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2))) / (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2)) * 100 # 目的関数
+m.solve() # ソルバーの実行
+P_c[0, 0] = value(x)
+
+# シミュレーション (2ステップ目)
+m_ox[1, 0] = 0
+m = LpProblem() # 数理モデル
+x = LpVariable('P_c', lowBound=0) # 変数
+m += (x - (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2))) / (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2)) * 100 # 目的関数
+m.solve() # ソルバーの実行
+P_c[1, 0] = value(x)
+
+# シミュレーション (3ステップ目以降)
+for k in range(2, len(t)):
+	
+	eta_c_star_c_star[k, 0] = eta_c_star * df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1))] \
+		+ (o_f[k, 0] - np.round(o_f[k, 0], 1)) / 0.1 * (df_c_star.at[(np.round(o_f[k, 0], 1) + 0.1), str(np.round(P_c[k, 0], 1))] - df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1))]) \
+		+ (P_c[k, 0] - np.round(P_c[k, 0], 1)) / 0.1 * (df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1) + 0.1)] - df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1))])
+	
 	m = LpProblem() # 数理モデル
 	x = LpVariable('P_c', lowBound=0) # 変数
-	m += (x - (4 * eta_c_star_c_star[k] * (m_dot_ox[k] + m_dot_f[k]) / (math.pi * D_t[k]^2))) / (4 * eta_c_star_c_star[k] * (m_dot_ox[k] + m_dot_f[k]) / (math.pi * D_t[k]^2)) * 100 # 目的関数
-	m += eta_c_star_c_star[k] == eta_c_star * df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1))] \
-		+ (o_f[k] - round(o_f[k], 1)) / 0.1 * (df_c_star.at[str(round(o_f[k], 1) + 0.1), str(round(P_c[k], 1))] - df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1))]) \
-		+ (P_c[k] - round(P_c[k], 1)) / 0.1 * (df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1) + 0.1)] - df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1))]) # 制約条件
+	m += (x - (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2))) / (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2)) * 100 # 目的関数
 	m.solve() # ソルバーの実行
-	P_c[k] = value(x)
+	P_c[k, 0] = value(x)
+print(P_c)
+
