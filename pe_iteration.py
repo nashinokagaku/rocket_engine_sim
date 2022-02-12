@@ -59,8 +59,8 @@ diff_P_c_d = np.zeros([len(t), 1])			# 燃焼室圧誤差 (%)
 # 初期値設定
 
 
-# OF比csvと比熱比csvを読み込み
-df_o_f = pd.read_csv('of.csv', index_col=0)
+# C*csvと比熱比csvを読み込み
+df_c_star = pd.read_csv('cstar.csv', index_col=0)
 df_gamma = pd.read_csv('gamma.csv', index_col=0)
 
 # シミュレーション
@@ -73,10 +73,10 @@ for k in range(len(t)):
 	P_c[k] = value(x)
 
 =$C$19* # C*効率
-(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)) # OFシートから現在のOFと燃焼室圧にマッチするOFの値を返す
-+ (K28 - INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1),1))
-/(INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1)+1,1) - INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1),1))
-*(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1)+1,MATCH(D28,OF!$C$3:$AV$3,1))  - INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)))
-+ (D28 - INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3)))
-/(INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3)+1) - INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3)))
-*(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)+1)  - INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1))))
+(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)) # C*csv中で現在のOFと燃焼室圧にマッチするC*の値
++ (K28 - INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1),1)) # 現在のOF - C*csvのOFリスト中で現在のOFに最も近いOFの値
+/(INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1)+1,1) - INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1),1)) # C*csvのOFリスト中で現在のOFに最も近いOFから1行下の値 - C*csvのOFリスト中で現在のOFに最も近いOFの値 = 0.1
+*(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1)+1,MATCH(D28,OF!$C$3:$AV$3,1))  - INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1))) # C*csv中で現在のOFに最も近いOFから1行下のOFと燃焼室圧にマッチするC*の値 - C*csv中で現在のOFと燃焼室圧にマッチするC*の値
++ (D28 - INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3))) # 現在の燃焼室圧 - C*csv燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧の値
+/(INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3)+1) - INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3))) # C*csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧から1列右の値 - C*csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧の値 = 0.1
+*(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)+1)  - INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)))) # # C*csv中で現在の燃焼室圧に最も近い燃焼室圧から1列右の燃焼室圧とOFにマッチするC*の値 - C*csv中で現在の燃焼室圧とOFにマッチするC*の値
