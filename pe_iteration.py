@@ -68,6 +68,8 @@ for k in range(len(t)):
 	m = LpProblem() # 数理モデル
 	x = LpVariable('P_c', lowBound=0) # 変数
 	m += (x - (4 * eta_c_star_c_star[k] * (m_dot_ox[k] + m_dot_f[k]) / (math.pi * D_t[k]^2))) / (4 * eta_c_star_c_star[k] * (m_dot_ox[k] + m_dot_f[k]) / (math.pi * D_t[k]^2)) * 100 # 目的関数
-	m += eta_c_star_c_star[k] ==  # 制約条件
+	m += eta_c_star_c_star[k] == eta_c_star * df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1))] \
+		+ (o_f[k] - round(o_f[k], 1)) / 0.1 * (df_c_star.at[str(round(o_f[k], 1) + 0.1), str(round(P_c[k], 1))] - df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1))]) \
+		+ (P_c[k] - round(P_c[k], 1)) / 0.1 * (df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1) + 0.1)] - df_c_star.at[str(round(o_f[k], 1)), str(round(P_c[k], 1))]) # 制約条件
 	m.solve() # ソルバーの実行
 	P_c[k] = value(x)
