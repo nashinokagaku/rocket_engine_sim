@@ -25,7 +25,7 @@ gamma =INDEX(Gamma!$C$4:$AV$199,MATCH(K28,Gamma!$B$4:$B$199,1),MATCH(D28,Gamma!$
 
 C_f =SQRT(2*(M28^2)/(M28-1)*((2/(M28+1))^((M28+1)/(M28-1)))*(1-(O28/D28)^((M28-1)/M28)))+((O28-$C$20)/D28)*(($C$22^2)/($C$21^2))
 # sqrt(2 * gamma[0, 0]**2 / (gamma[0, 0] - 1) * ((2 / (gamma[0, 0] + 1))**((gamma[0, 0] + 1) / (gamma[0, 0] - 1))) * (1 - (P_e[0, 0] / P_c[0, 0])**((gamma[0, 0] - 1) / gamma[0, 0]))) \
-+ ((P_e[0, 0] - P_o) / P_c[0, 0]) * ((D_e**2) / D_t_i**2)
++ ((P_e[0, 0] - P_o) / P_c[0, 0]) * ((D_e**2) / (D_t_i**2))
 
 F_t =((1+COS(RADIANS($C$23)))/2)*P28*D28*(PI()*($C$21^2)/4)
 # F_t = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[0, 0] * P_c[0, 0] * (math.pi * D_t_i**2 / 4)
