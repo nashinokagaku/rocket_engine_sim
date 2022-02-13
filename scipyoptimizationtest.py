@@ -41,3 +41,26 @@ up = [2 * np.pi]
 ret = dual_annealing(f, bounds=list(zip(lw, up)))
 print(res.x)
 print(res.fun)
+
+# minimize with constraints
+# 目的関数
+def func(x):
+    return x ** 2
+
+# 制約条件式
+a = 0
+def cons1(x):
+    return -a * (x + 1)
+def cons2(a):
+    return a - 0.5
+
+# 制約条件式が非負となるようにする
+cons = (
+    {'type': 'ineq', 'fun': cons1},
+    {'type': 'eq', 'fun': cons2}
+)
+x = -10 # 初期値は適当
+
+result = minimize(func, x0=x, constraints=cons, method="SLSQP")
+print(result.x[0])
+print(result.fun[0])
