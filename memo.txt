@@ -1,8 +1,34 @@
-=$C$19* # C*効率
+eta_c_star_c_star=$C$19* # C*効率
 (INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)) # C*csv中で現在のOFと燃焼室圧にマッチするC*の値
 + (K28 - INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1),1)) # 現在のOF - C*csvのOFリスト中で現在のOFに最も近いOFの値
 /(INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1)+1,1) - INDEX(OF!$B$4:$B$199,MATCH(K28,OF!$B$4:$B$199,1),1)) # C*csvのOFリスト中で現在のOFに最も近いOFから1行下の値 - C*csvのOFリスト中で現在のOFに最も近いOFの値 = 0.1
 *(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1)+1,MATCH(D28,OF!$C$3:$AV$3,1))  - INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1))) # C*csv中で現在のOFに最も近いOFから1行下のOFと燃焼室圧にマッチするC*の値 - C*csv中で現在のOFと燃焼室圧にマッチするC*の値
 + (D28 - INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3))) # 現在の燃焼室圧 - C*csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧の値
 /(INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3)+1) - INDEX(OF!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3))) # C*csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧から1列右の値 - C*csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧の値 = 0.1
-*(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)+1)  - INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)))) # # C*csv中で現在の燃焼室圧に最も近い燃焼室圧から1列右の燃焼室圧とOFにマッチするC*の値 - C*csv中で現在の燃焼室圧とOFにマッチするC*の値
+*(INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)+1)  - INDEX(OF!$C$4:$AV$199,MATCH(K28,OF!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)))) # C*csv中で現在の燃焼室圧に最も近い燃焼室圧から1列右の燃焼室圧とOFにマッチするC*の値 - C*csv中で現在の燃焼室圧とOFにマッチするC*の値
+
+m_dot_ox =IF(B28<=($C$5*$C$6*10^-6),$C$9*(PI()/4*($C$8*0.001)^2)*SQRT(2*$C$6*IF(C28>D28,(C28-D28),0)*10^6),E27)
+# "圧力差" = タンク圧 - 燃焼室圧 (タンク圧 > 燃焼室圧の場合)
+# "圧力差" = 0 (それ以外)
+# もし酸化剤消費量が酸化剤充填量以下ならば，流量係数*オリフィス面積*sqrt(2*酸化剤密度*("圧力差"))，それ以外は，1ステップ前の値を継続
+
+D_f =SQRT(4*F28/($C$15*PI()*$C$11*$C$12*0.001)+($C$13*0.001)^2)*1000
+# sqrt(4 * 燃料消費量 / (ポート数 * pi * 燃料密度 * 燃料軸長 * 1e-3) + (初期ポート径 * 1e-3)**2 * 1e3)
+
+gamma =INDEX(Gamma!$C$4:$AV$199,MATCH(K28,Gamma!$B$4:$B$199,1),MATCH(D28,Gamma!$C$3:$AV$3,1)) # gamma csv中で現在のOFと燃焼室圧にマッチするgammaの値
++ (K28 - INDEX(Gamma!$B$4:$B$199,MATCH(K28,Gamma!$B$4:$B$199,1),1)) # 現在のOF - gamma csvのOFリスト中で現在のOFに最も近いOFの値
+/(INDEX(Gamma!$B$4:$B$199,MATCH(K28,Gamma!$B$4:$B$199,1)+1,1) - INDEX(Gamma!$B$4:$B$199,MATCH(K28,Gamma!$B$4:$B$199,1),1)) # gamma csvのOFリスト中で現在のOFに最も近いOFから1行下の値 - gamma csvのOFリスト中で現在のOFに最も近いOFの値 = 0.1
+*(INDEX(Gamma!$C$4:$AV$199,MATCH(K28,Gamma!$B$4:$B$199,1)+1,MATCH(D28,Gamma!$C$3:$AV$3,1))  - INDEX(Gamma!$C$4:$AV$199,MATCH(K28,Gamma!$B$4:$B$199,1),MATCH(D28,Gamma!$C$3:$AV$3,1))) # gamma csv中で現在のOFに最も近いOFから1行下のOFと燃焼室圧にマッチするgammaの値 - gamma csv中で現在のOFと燃焼室圧にマッチするgammaの値
++ (D28 - INDEX(Gamma!$C$3:$AV$3,1,MATCH(D28,Gamma!$C$3:$AV$3))) # 現在の燃焼室圧 - gamma csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧の値
+/(INDEX(Gamma!$C$3:$AV$3,1,MATCH(D28,Gamma!$C$3:$AV$3)+1) - INDEX(Gamma!$C$3:$AV$3,1,MATCH(D28,OF!$C$3:$AV$3))) # gamma csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧から1列右の値 - gamma csvの燃焼室圧リスト中で現在の燃焼室圧に最も近い燃焼室圧の値 = 0.1
+*(INDEX(Gamma!$C$4:$AV$199,MATCH(K28,Gamma!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)+1)  - INDEX(Gamma!$C$4:$AV$199,MATCH(K28,Gamma!$B$4:$B$199,1),MATCH(D28,OF!$C$3:$AV$3,1)))# gamma csv中で現在の燃焼室圧に最も近い燃焼室圧から1列右の燃焼室圧とOFにマッチするC*の値 - gamma csv中で現在の燃焼室圧とOFにマッチするC*の値
+
+C_f =SQRT(2*(M28^2)/(M28-1)*((2/(M28+1))^((M28+1)/(M28-1)))*(1-(O28/D28)^((M28-1)/M28)))+((O28-$C$20)/D28)*(($C$22^2)/($C$21^2))
+# sqrt(2 * gamma[0, 0]**2 / (gamma[0, 0] - 1) * ((2 / (gamma[0, 0] + 1))**((gamma[0, 0] + 1) / (gamma[0, 0] - 1))) * (1 - (P_e[0, 0] / P_c[0, 0])**((gamma[0, 0] - 1) / gamma[0, 0]))) \
++ ((P_e[0, 0] - P_o) / P_c[0, 0]) * ((D_e**2) / D_t_i**2)
+
+F_t =((1+COS(RADIANS($C$23)))/2)*P28*D28*(PI()*($C$21^2)/4)
+# F_t = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[0, 0] * P_c[0, 0] * (math.pi * D_t_i**2 / 4)
+
+epsilon_d =((2/(M28+1))^(1/(M28-1)))*((D28/O28)^(1/M28))  /  SQRT(((M28+1)/(M28-1))*(1-(O28/D28)^((M28-1)/M28)))
+# epsilon_d = ((2 / (gamma[0, 0] + 1))**(1 / (gamma[0, 0] - 1))) * ((P_c[0, 0] / x2)**(1 / gamma[0, 0])) / math.sqrt((gamma[0, 0] + 1) / (gamma[0, 0] - 1) * (1 - (P_e[0, 0] / P_c[0, 0])**((gamma[0, 0] - 1) / gamma[0, 0])))
