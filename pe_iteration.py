@@ -7,6 +7,14 @@ import matplotlib.pyplot as plt
 import math
 from scipy.optimize import minimize_scalar, shgo, minimize
 
+plt.rcParams['font.family'] ='Times new roman'#使用するフォント
+plt.rcParams['xtick.direction'] = 'in'#x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+plt.rcParams['ytick.direction'] = 'in'#y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+plt.rcParams['xtick.major.width'] = 1.0#x軸主目盛り線の線幅
+plt.rcParams['ytick.major.width'] = 1.0#y軸主目盛り線の線幅
+plt.rcParams['font.size'] = 12 #フォントの大きさ
+plt.rcParams['axes.linewidth'] = 1.0# 軸の線幅edge linewidth。囲みの太さ
+
 # 入力値
 P_t_i = 3.3 		# 初期タンク圧 (MPa)
 P_t_f = 2.0 		# 最終タンク圧 (MPa)
@@ -31,7 +39,7 @@ alpha = 15 			# ノズル開口半長角 (deg)
 r_dot_n = 0			# エロージョン速度 (mm/s)
 
 # シミュレーション設定
-simulation_time = 5 						# シミュレーション時間 (s)
+simulation_time = 0.5 						# シミュレーション時間 (s)
 Ts = 10e-3									# サンプリング周期 (s)
 t = np.linspace(0, simulation_time, int(simulation_time / Ts))
 m_ox = np.zeros([len(t), 1])				# 酸化剤消費量 (Kg)
@@ -81,7 +89,7 @@ o_f[0, 0] = m_dot_ox[0, 0] / m_dot_f[0, 0]
 if np.round(o_f[0, 0], 1) <= 0.5:
 	index_o_f = 0.5
 elif np.round(o_f[0, 0], 1) >= 20:
-	index_o_f = 20
+	index_o_f = 20.0
 else:
 	index_o_f = np.round(o_f[0, 0], 1)
 if np.round(P_c[0, 0], 1) <= 0.5:
@@ -91,11 +99,11 @@ elif np.round(P_c[0, 0], 1) >= 5:
 else:
 	index_P_c = np.round(P_c[0, 0], 1)
 eta_c_star_c_star[0, 0] = eta_c_star * (df_c_star.at[index_o_f, str(index_P_c)] \
-	+ (o_f[0, 0] - index_o_f) / 0.1 * (df_c_star.at[(index_o_f + 0.1), str(index_P_c)] - df_c_star.at[index_o_f, str(index_P_c)]) \
-	+ (P_c[0, 0] - index_P_c) / 0.1 * (df_c_star.at[index_o_f, str(index_P_c + 0.1)] - df_c_star.at[index_o_f, str(index_P_c)]))
+	+ (o_f[0, 0] - index_o_f) / 0.1 * (df_c_star.at[np.round(index_o_f + 0.1, 1), str(index_P_c)] - df_c_star.at[index_o_f, str(index_P_c)]) \
+	+ (P_c[0, 0] - index_P_c) / 0.1 * (df_c_star.at[index_o_f, str(np.round(index_P_c + 0.1, 1))] - df_c_star.at[index_o_f, str(index_P_c)]))
 gamma[0, 0] = df_gamma.at[index_o_f, str(index_P_c)] \
-	+ (o_f[0, 0] - index_o_f) / 0.1 * (df_gamma.at[(index_o_f + 0.1), str(index_P_c)] - df_gamma.at[index_o_f, str(index_P_c)]) \
-	+ (P_c[0, 0] - index_P_c) / 0.1 * (df_gamma.at[index_o_f, str(index_P_c + 0.1)] - df_gamma.at[index_o_f, str(index_P_c)])
+	+ (o_f[0, 0] - index_o_f) / 0.1 * (df_gamma.at[np.round(index_o_f + 0.1, 1), str(index_P_c)] - df_gamma.at[index_o_f, str(index_P_c)]) \
+	+ (P_c[0, 0] - index_P_c) / 0.1 * (df_gamma.at[index_o_f, str(np.round(index_P_c + 0.1, 1))] - df_gamma.at[index_o_f, str(index_P_c)])
 D_t[0, 0] = D_t_i
 P_e[0, 0] = 0.1
 C_f[0, 0] = math.sqrt(2 * gamma[0, 0]**2 / (gamma[0, 0] - 1) * ((2 / (gamma[0, 0] + 1))**((gamma[0, 0] + 1) / (gamma[0, 0] - 1))) * (1 - (P_e[0, 0] / P_c[0, 0])**((gamma[0, 0] - 1) / gamma[0, 0]))) \
@@ -121,7 +129,7 @@ print(P_e[0, 0])
 
 # シミュレーション (2ステップ目)
 m_ox[1, 0] = m_ox[0, 0] + m_dot_ox[0, 0] * Ts/2
-P_t[1, 0] = (P_t_f - P_t_i) * 0 / t_b_d + P_t_i
+P_t[1, 0] = (P_t_f - P_t_i) * Ts / t_b_d + P_t_i
 P_c[1, 0] = P_c[0, 0]
 if P_t[1, 0] > P_c[1, 0]:
 	diff_P = P_t[1, 0] - P_c[1, 0]
@@ -140,7 +148,7 @@ o_f[1, 0] = m_dot_ox[1, 0] / m_dot_f[1, 0]
 if np.round(o_f[1, 0], 1) <= 0.5:
 	index_o_f = 0.5
 elif np.round(o_f[1, 0], 1) >= 20:
-	index_o_f = 20
+	index_o_f = 20.0
 else:
 	index_o_f = np.round(o_f[1, 0], 1)
 if np.round(P_c[1, 0], 1) <= 0.5:
@@ -150,11 +158,11 @@ elif np.round(P_c[1, 0], 1) >= 5:
 else:
 	index_P_c = np.round(P_c[1, 0], 1)
 eta_c_star_c_star[1, 0] = eta_c_star * (df_c_star.at[index_o_f, str(index_P_c)] \
-	+ (o_f[1, 0] - index_o_f) / 0.1 * (df_c_star.at[(index_o_f + 0.1), str(index_P_c)] - df_c_star.at[index_o_f, str(index_P_c)]) \
-	+ (P_c[1, 0] - index_P_c) / 0.1 * (df_c_star.at[index_o_f, str(index_P_c + 0.1)] - df_c_star.at[index_o_f, str(index_P_c)]))
+	+ (o_f[1, 0] - index_o_f) / 0.1 * (df_c_star.at[np.round(index_o_f + 0.1, 1), str(index_P_c)] - df_c_star.at[index_o_f, str(index_P_c)]) \
+	+ (P_c[1, 0] - index_P_c) / 0.1 * (df_c_star.at[index_o_f, str(np.round(index_P_c + 0.1, 1))] - df_c_star.at[index_o_f, str(index_P_c)]))
 gamma[1, 0] = df_gamma.at[index_o_f, str(index_P_c)] \
-	+ (o_f[1, 0] - index_o_f) / 0.1 * (df_gamma.at[(index_o_f + 0.1), str(index_P_c)] - df_gamma.at[index_o_f, str(index_P_c)]) \
-	+ (P_c[1, 0] - index_P_c) / 0.1 * (df_gamma.at[index_o_f, str(index_P_c + 0.1)] - df_gamma.at[index_o_f, str(index_P_c)])
+	+ (o_f[1, 0] - index_o_f) / 0.1 * (df_gamma.at[np.round(index_o_f + 0.1, 1), str(index_P_c)] - df_gamma.at[index_o_f, str(index_P_c)]) \
+	+ (P_c[1, 0] - index_P_c) / 0.1 * (df_gamma.at[index_o_f, str(np.round(index_P_c + 0.1, 1))] - df_gamma.at[index_o_f, str(index_P_c)])
 D_t[1, 0] = D_t[0, 0] - r_dot_n * Ts
 P_e[1, 0] = P_e[0, 0]
 C_f[1, 0] = math.sqrt(2 * gamma[1, 0]**2 / (gamma[1, 0] - 1) * ((2 / (gamma[1, 0] + 1))**((gamma[1, 0] + 1) / (gamma[1, 0] - 1))) * (1 - (P_e[1, 0] / P_c[1, 0])**((gamma[1, 0] - 1) / gamma[1, 0]))) \
@@ -179,16 +187,112 @@ print(P_c[1, 0])
 print(P_e[1, 0])
 
 # # シミュレーション (3ステップ目以降)
-# for k in range(2, len(t)):
-	
-# 	eta_c_star_c_star[k, 0] = eta_c_star * df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1))] \
-# 		+ (o_f[k, 0] - np.round(o_f[k, 0], 1)) / 0.1 * (df_c_star.at[(np.round(o_f[k, 0], 1) + 0.1), str(np.round(P_c[k, 0], 1))] - df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1))]) \
-# 		+ (P_c[k, 0] - np.round(P_c[k, 0], 1)) / 0.1 * (df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1) + 0.1)] - df_c_star.at[(np.round(o_f[k, 0], 1)), str(np.round(P_c[k, 0], 1))])
-	
-# 	m = LpProblem() # 数理モデル
-# 	x = LpVariable('P_c', lowBound=0) # 変数
-# 	m += (x - (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2))) / (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2)) * 100 # 目的関数
-# 	m.solve() # ソルバーの実行
-# 	P_c[k, 0] = value(x)
-# print(P_c)
+for k in range(2, len(t)):
+	m_ox[k, 0] = m_ox[k-1, 0] + (m_dot_ox[k-1, 0] + m_dot_ox[k-2, 0]) * Ts/2
+	P_t[k, 0] = (P_t_f - P_t_i) * Ts*k / t_b_d + P_t_i
+	P_c[k, 0] = 0.5
+	if P_t[k, 0] > P_c[k, 0]:
+		diff_P = P_t[k, 0] - P_c[k, 0]
+	else:
+		diff_P = 0
+	if m_ox[k, 0] <= V_ox_i * rho_ox * 1e-6:
+		m_dot_ox[k, 0] = C_d * (math.pi / 4 * (D_o * 1e-3)**2) * math.sqrt(2 * rho_ox * diff_P * 1e6)
+	else:
+		m_dot_ox[k, 0] = 0
+	m_f[k, 0] = m_f[k-1, 0] + (m_dot_f[k-1, 0] + m_dot_f[k-2, 0]) * Ts/2
+	D_f[k, 0] = math.sqrt(4 * m_f[k, 0] / (N_port * math.pi * rho_f * L_f * 1e-3) + (D_f_i * 1e-3)**2) * 1e3
+	G_ox[k, 0] = 4 * m_dot_ox[k, 0] / (N_port * math.pi *(D_f[k, 0] * 1e-3)**2)
+	r_dot[k, 0] = a * G_ox[k, 0]**n * 1e3
+	m_dot_f[k, 0] = L_f * 1e-3 * math.pi * D_f[k, 0] * 1e-3 * rho_f * r_dot[k, 0] * 1e-3 * N_port
+	o_f[k, 0] = m_dot_ox[k, 0] / m_dot_f[k, 0]
+	if np.round(o_f[k, 0], 1) <= 0.5:
+		index_o_f = 0.5
+	elif np.round(o_f[k, 0], 1) >= 20:
+		index_o_f = 20.0
+	else:
+		index_o_f = np.round(o_f[k, 0], 1)
+	if np.round(P_c[k, 0], 1) <= 0.5:
+		index_P_c = 0.5
+	elif np.round(P_c[k, 0], 1) >= 5:
+		index_P_c = 5.0
+	else:
+		index_P_c = np.round(P_c[k, 0], 1)
+	# print(index_o_f)
+	# print(index_P_c)
+	# print(m_dot_f[k, 0])
+	eta_c_star_c_star[k, 0] = eta_c_star * (df_c_star.at[index_o_f, str(index_P_c)] \
+		+ (o_f[k, 0] - index_o_f) / 0.1 * (df_c_star.at[np.round(index_o_f + 0.1, 1), str(index_P_c)] - df_c_star.at[index_o_f, str(index_P_c)]) \
+		+ (P_c[k, 0] - index_P_c) / 0.1 * (df_c_star.at[index_o_f, str(np.round(index_P_c + 0.1, 1))] - df_c_star.at[index_o_f, str(index_P_c)]))
+	gamma[k, 0] = df_gamma.at[index_o_f, str(index_P_c)] \
+		+ (o_f[k, 0] - index_o_f) / 0.1 * (df_gamma.at[np.round(index_o_f + 0.1, 1), str(index_P_c)] - df_gamma.at[index_o_f, str(index_P_c)]) \
+		+ (P_c[k, 0] - index_P_c) / 0.1 * (df_gamma.at[index_o_f, str(np.round(index_P_c + 0.1, 1))] - df_gamma.at[index_o_f, str(index_P_c)])
+	D_t[k, 0] = D_t[k-1, 0] - r_dot_n * Ts
+	P_e[k, 0] = P_e[k-1, 0]
+	C_f[k, 0] = math.sqrt(2 * gamma[k, 0]**2 / (gamma[k, 0] - 1) * ((2 / (gamma[k, 0] + 1))**((gamma[k, 0] + 1) / (gamma[k, 0] - 1))) * (1 - (P_e[k, 0] / P_c[k, 0])**((gamma[k, 0] - 1) / gamma[k, 0]))) \
+		+ ((P_e[k, 0] - P_o) / P_c[k, 0]) * ((D_e**2) / D_t_i**2)
+	F_t[k, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[k, 0] * P_c[k, 0] * (math.pi * D_t_i**2 / 4)
+	I_t[k, 0] = I_t[k-1, 0] + (F_t[k-1, 0] + F_t[k, 0]) * Ts/2
 
+	def f(x1):
+		return(abs((x1 - (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2))) / (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2)) * 100)) # 目的関数
+	res = minimize_scalar(f, bounds=(0, 5.0), method="bounded")
+	P_c[k, 0] = res.x
+	# plt.plot(t, ((t - (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2))) / (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2)) * 100))
+	# plt.show()
+
+	def f(x2):
+		return(abs((((((2 / (gamma[k, 0] + 1))**(1 / (gamma[k, 0] - 1))) * ((P_c[k, 0] / x2)**(1 / gamma[k, 0])) / math.sqrt((gamma[k, 0] + 1) / (gamma[k, 0] - 1) * (1 - (P_e[k, 0] / P_c[k, 0])**((gamma[k, 0] - 1) / gamma[k, 0])))) - (D_e**2 / D_t_i**2)) / (D_e**2 / D_t_i**2) * 100))) # 目的関数
+	res = minimize_scalar(f, bounds=(0, 0.2), method="bounded")
+	P_e[k, 0] = res.x
+	epsilon_d[k, 0] = res.fun
+
+	print(P_c[k, 0])
+	print(P_e[k, 0])
+
+plt.figure(figsize=(3.14,3.14))
+plt.plot(t, P_c, linestyle='-', color='r', linewidth=1.0, label='Chamber')
+plt.plot(t, P_t, linestyle='-', color='b', linewidth=1.0, label='Tank')
+plt.xlabel('Time (s)')
+plt.ylabel('Pressure (MPa)')
+# plt.xlim(0, 30)
+# plt.ylim(0, 6e38)
+# plt.xticks(np.arange(0, 31, 5))
+# plt.yticks(np.arange(0, 6e38, 1e38))
+plt.legend(loc='upper left', frameon=True)
+plt.savefig("./fig/pressure.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
+
+plt.figure(figsize=(3.14,3.14))
+plt.plot(t, o_f, linestyle='-', color='r', linewidth=1.0, label='o/f')
+plt.xlabel('Time (s)')
+plt.ylabel('O/F (-)')
+# plt.xlim(0, 30)
+# plt.ylim(0, 6e38)
+# plt.xticks(np.arange(0, 31, 5))
+# plt.yticks(np.arange(0, 6e38, 1e38))
+# plt.legend(loc='upper left', frameon=True)
+plt.savefig("./fig/of.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
+
+plt.figure(figsize=(3.14,3.14))
+plt.plot(t, m_dot_f, linestyle='-', color='r', linewidth=1.0, label='Fuel')
+plt.plot(t, m_dot_ox, linestyle='-', color='b', linewidth=1.0, label='Oxidizer')
+plt.xlabel('Time (s)')
+plt.ylabel('Flow rate (kg/s)')
+# plt.xlim(0, 30)
+# plt.ylim(0, 6e38)
+# plt.xticks(np.arange(0, 31, 5))
+# plt.yticks(np.arange(0, 6e38, 1e38))
+plt.legend(loc='upper left', frameon=True)
+plt.savefig("./fig/mdot.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
+
+plt.figure(figsize=(3.14,3.14))
+plt.plot(t, F_t, linestyle='-', color='r', linewidth=1.0, label='thrust')
+plt.xlabel('Time (s)')
+plt.ylabel('Thrust (N)')
+# plt.xlim(0, 30)
+# plt.ylim(0, 6e38)
+# plt.xticks(np.arange(0, 31, 5))
+# plt.yticks(np.arange(0, 6e38, 1e38))
+# plt.legend(loc='upper left', frameon=True)
+plt.savefig("./fig/thrust.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
+
+plt.show()
