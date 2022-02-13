@@ -60,9 +60,9 @@ C_f = np.zeros([len(t), 1])					# 推力係数 (-)
 F_t = np.zeros([len(t), 1])					# 推力 (N)
 I_t = np.zeros([len(t), 1])					# 力積 (Ns)
 # P_c_d = np.zeros([len(t), 1])				# 燃焼室圧 (MPa)
-# diff_P_c_d = np.zeros([len(t), 1])			# 燃焼室圧誤差 (%)
+# diff_P_c_d = np.zeros([len(t), 1])		# 燃焼室圧誤差 (%)
 epsilon_d = np.zeros([len(t), 1])			# 開口比 (-)
-# diff_epsilon_d = np.zeros([len(t), 1])		# 開口比誤差 (%)
+# diff_epsilon_d = np.zeros([len(t), 1])	# 開口比誤差 (%)
 
 # C*csvと比熱比csvを読み込み
 df_c_star = pd.read_csv('cstar.csv', header=0, index_col=0, dtype=np.float64)
@@ -124,7 +124,7 @@ cons = (
 
 bounds = [[0.5, 5], [0.5, 5]]
 
-x_i = [0.5, 0.5] # 初期値は適当
+x_i = [0.5, 0.5]
 
 result = minimize(func1, x0=x_i, constraints=cons, bounds=bounds, method="SLSQP")
 P_c[0, 0] = result.x[0]
@@ -182,7 +182,7 @@ def cons1(x):
 	P_e[1, 0] = 0.1
 	C_f[1, 0] = math.sqrt(2 * gamma[1, 0]**2 / (gamma[1, 0] - 1) * ((2 / (gamma[1, 0] + 1))**((gamma[1, 0] + 1) / (gamma[1, 0] - 1))) * (1 - (P_e[1, 0] / xP_c)**((gamma[1, 0] - 1) / gamma[1, 0]))) \
 		+ ((P_e[1, 0] - P_o) / xP_c) * ((D_e**2) / (D_t_i**2))
-	F_t[1, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[1, 0] * P_c[1, 0] * (math.pi * D_t_i**2 / 4)
+	F_t[1, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[1, 0] * xP_c * (math.pi * D_t_i**2 / 4)
 	I_t[1, 0] = I_t[0, 0] + (F_t[0, 0] + F_t[1, 0]) * Ts/2
 	v = P_c_d - (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2))
 	return v
@@ -252,7 +252,7 @@ for k in range(2, len(t)):
 		P_e[k, 0] = 0.1
 		C_f[k, 0] = math.sqrt(2 * gamma[k, 0]**2 / (gamma[k, 0] - 1) * ((2 / (gamma[k, 0] + 1))**((gamma[k, 0] + 1) / (gamma[k, 0] - 1))) * (1 - (P_e[k, 0] / xP_c)**((gamma[k, 0] - 1) / gamma[k, 0]))) \
 			+ ((P_e[k, 0] - P_o) / xP_c) * ((D_e**2) / D_t_i**2)
-		F_t[k, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[k, 0] * P_c[k, 0] * (math.pi * D_t_i**2 / 4)
+		F_t[k, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[k, 0] * xP_c * (math.pi * D_t_i**2 / 4)
 		I_t[k, 0] = I_t[k-1, 0] + (F_t[k-1, 0] + F_t[k, 0]) * Ts/2
 		v = P_c_d - (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2))
 		return v
