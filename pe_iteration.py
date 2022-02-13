@@ -6,6 +6,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import minimize_scalar, minimize
+import time
+ 
+start_time = time.perf_counter()
 
 plt.rcParams['font.family'] ='Times new roman'#使用するフォント
 plt.rcParams['xtick.direction'] = 'in'#x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
@@ -288,6 +291,8 @@ m_f_total = m_f[index_fin, 0]
 I_sp = I_total / ((m_ox_total + m_f_total) * 9.8)
 D_f_f = D_f[index_fin, 0]
 Phi = (1 - (N_port * D_f_f**2 - N_port * D_f_i**2) / (D_f_out**2 - N_port * D_f_i**2)) * 100
+end_time = time.perf_counter()
+elapsed_time = end_time - start_time
 
 # 結果出力
 np.set_printoptions(formatter={'float': '{:.2f}'.format})
@@ -303,7 +308,8 @@ print(f'fuel consumption = {m_f_total} (kg)')
 print(f'Isp = {I_sp} (s)')
 print(f'final fuel port diameter = {D_f_f} (mm)')
 print(f'sliver ratio = {Phi} (%)')
-print('============================================================')
+print('====================== execution time ======================')
+print(f'execution time = {elapsed_time} (s)')
 
 # グラフ描画
 plt.figure(figsize=(3.14,3.14))
