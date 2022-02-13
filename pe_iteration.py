@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
-from scipy.optimize import minimize_scalar, shgo, minimize
+from scipy.optimize import minimize_scalar, minimize
 
 plt.rcParams['font.family'] ='Times new roman'#使用するフォント
 plt.rcParams['xtick.direction'] = 'in'#x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
@@ -113,7 +113,7 @@ def cons1(x):
 	P_e[0, 0] = 0.1
 	C_f[0, 0] = math.sqrt(2 * gamma[0, 0]**2 / (gamma[0, 0] - 1) * ((2 / (gamma[0, 0] + 1))**((gamma[0, 0] + 1) / (gamma[0, 0] - 1))) * (1 - (P_e[0, 0] / xP_c)**((gamma[0, 0] - 1) / gamma[0, 0]))) \
 		+ ((P_e[0, 0] - P_o) / xP_c) * ((D_e**2) / D_t_i**2)
-	F_t[0, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[0, 0] * xP_c * (math.pi * D_t_i**2 / 4)
+	F_t[0, 0] = ((1 + math.cos(math.radians(alpha))) / 2) * C_f[0, 0] * xP_c * (math.pi * D_t_i**2 / 4)
 	I_t[0, 0] = 0
 	v = P_c_d - (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2))
 	return v
@@ -182,7 +182,7 @@ def cons1(x):
 	P_e[1, 0] = 0.1
 	C_f[1, 0] = math.sqrt(2 * gamma[1, 0]**2 / (gamma[1, 0] - 1) * ((2 / (gamma[1, 0] + 1))**((gamma[1, 0] + 1) / (gamma[1, 0] - 1))) * (1 - (P_e[1, 0] / xP_c)**((gamma[1, 0] - 1) / gamma[1, 0]))) \
 		+ ((P_e[1, 0] - P_o) / xP_c) * ((D_e**2) / (D_t_i**2))
-	F_t[1, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[1, 0] * xP_c * (math.pi * D_t_i**2 / 4)
+	F_t[1, 0] = ((1 + math.cos(math.radians(alpha))) / 2) * C_f[1, 0] * xP_c * (math.pi * D_t_i**2 / 4)
 	I_t[1, 0] = I_t[0, 0] + (F_t[0, 0] + F_t[1, 0]) * Ts/2
 	v = P_c_d - (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2))
 	return v
@@ -252,7 +252,7 @@ for k in range(2, len(t)):
 		P_e[k, 0] = 0.1
 		C_f[k, 0] = math.sqrt(2 * gamma[k, 0]**2 / (gamma[k, 0] - 1) * ((2 / (gamma[k, 0] + 1))**((gamma[k, 0] + 1) / (gamma[k, 0] - 1))) * (1 - (P_e[k, 0] / xP_c)**((gamma[k, 0] - 1) / gamma[k, 0]))) \
 			+ ((P_e[k, 0] - P_o) / xP_c) * ((D_e**2) / D_t_i**2)
-		F_t[k, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[k, 0] * xP_c * (math.pi * D_t_i**2 / 4)
+		F_t[k, 0] = ((1 + math.cos(math.radians(alpha))) / 2) * C_f[k, 0] * xP_c * (math.pi * D_t_i**2 / 4)
 		I_t[k, 0] = I_t[k-1, 0] + (F_t[k-1, 0] + F_t[k, 0]) * Ts/2
 		v = P_c_d - (4 * eta_c_star_c_star[k, 0] * (m_dot_ox[k, 0] + m_dot_f[k, 0]) / (math.pi * D_t[k, 0]**2))
 		return v
@@ -276,6 +276,10 @@ for k in range(2, len(t)):
 	result = minimize_scalar(func2, method='bounded', bounds=(0, 0.2))
 	P_e[k, 0] = result.x
 
+# 結果出力
+
+
+# グラフ描画
 plt.figure(figsize=(3.14,3.14))
 plt.plot(t, P_c, linestyle='-', color='r', linewidth=1.0, label='Chamber')
 plt.plot(t, P_t, linestyle='-', color='b', linewidth=1.0, label='Tank')
@@ -285,8 +289,19 @@ plt.ylabel('Pressure (MPa)')
 # plt.ylim(0, 6e38)
 # plt.xticks(np.arange(0, 31, 5))
 # plt.yticks(np.arange(0, 6e38, 1e38))
-plt.legend(loc='upper left', frameon=True)
+plt.legend(loc='upper right', frameon=True)
 plt.savefig("./fig/pressure.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
+
+plt.figure(figsize=(3.14,3.14))
+plt.plot(t, P_e, linestyle='-', color='r', linewidth=1.0, label='pe')
+plt.xlabel('Time (s)')
+plt.ylabel('Exhaust pressure (MPa)')
+# plt.xlim(0, 30)
+# plt.ylim(0, 6e38)
+# plt.xticks(np.arange(0, 31, 5))
+# plt.yticks(np.arange(0, 6e38, 1e38))
+# plt.legend(loc='upper left', frameon=True)
+plt.savefig("./fig/pe.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
 
 plt.figure(figsize=(3.14,3.14))
 plt.plot(t, o_f, linestyle='-', color='r', linewidth=1.0, label='o/f')
@@ -308,8 +323,19 @@ plt.ylabel('Flow rate (kg/s)')
 # plt.ylim(0, 6e38)
 # plt.xticks(np.arange(0, 31, 5))
 # plt.yticks(np.arange(0, 6e38, 1e38))
-plt.legend(loc='upper left', frameon=True)
+plt.legend(loc='upper right', frameon=True)
 plt.savefig("./fig/mdot.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
+
+plt.figure(figsize=(3.14,3.14))
+plt.plot(t, C_f, linestyle='-', color='r', linewidth=1.0, label='cf')
+plt.xlabel('Time (s)')
+plt.ylabel('Thrust coefficient (-)')
+# plt.xlim(0, 30)
+# plt.ylim(0, 6e38)
+# plt.xticks(np.arange(0, 31, 5))
+# plt.yticks(np.arange(0, 6e38, 1e38))
+# plt.legend(loc='upper left', frameon=True)
+plt.savefig("./fig/cf.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05, transparent=True)
 
 plt.figure(figsize=(3.14,3.14))
 plt.plot(t, F_t, linestyle='-', color='r', linewidth=1.0, label='thrust')
