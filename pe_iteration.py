@@ -39,7 +39,7 @@ alpha = 15 			# ノズル開口半長角 (deg)
 r_dot_n = 0			# エロージョン速度 (mm/s)
 
 # シミュレーション設定
-simulation_time = 0.5 						# シミュレーション時間 (s)
+simulation_time = 0.1 						# シミュレーション時間 (s)
 Ts = 10e-3									# サンプリング周期 (s)
 t = np.linspace(0, simulation_time, int(simulation_time / Ts))
 m_ox = np.zeros([len(t), 1])				# 酸化剤消費量 (Kg)
@@ -190,7 +190,7 @@ print(P_e[1, 0])
 for k in range(2, len(t)):
 	m_ox[k, 0] = m_ox[k-1, 0] + (m_dot_ox[k-1, 0] + m_dot_ox[k-2, 0]) * Ts/2
 	P_t[k, 0] = (P_t_f - P_t_i) * Ts*k / t_b_d + P_t_i
-	P_c[k, 0] = 0.5
+	P_c[k, 0] = P_c[k-1, 0]
 	if P_t[k, 0] > P_c[k, 0]:
 		diff_P = P_t[k, 0] - P_c[k, 0]
 	else:
@@ -248,6 +248,7 @@ for k in range(2, len(t)):
 
 	print(P_c[k, 0])
 	print(P_e[k, 0])
+	print(m_f[k, 0])
 
 plt.figure(figsize=(3.14,3.14))
 plt.plot(t, P_c, linestyle='-', color='r', linewidth=1.0, label='Chamber')
