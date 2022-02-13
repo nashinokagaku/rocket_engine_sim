@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
-from pulp import *
 from scipy.optimize import minimize_scalar, shgo, minimize
 
 # 入力値
@@ -53,18 +52,18 @@ C_f = np.zeros([len(t), 1])					# 推力係数 (-)
 F_t = np.zeros([len(t), 1])					# 推力 (N)
 I_t = np.zeros([len(t), 1])					# 力積 (Ns)
 P_c_d = np.zeros([len(t), 1])				# 燃焼室圧 (MPa)
-diff_P_c_d = np.zeros([len(t), 1])		# 燃焼室圧誤差 (%)
+diff_P_c_d = np.zeros([len(t), 1])			# 燃焼室圧誤差 (%)
 epsilon_d = np.zeros([len(t), 1])			# 開口比 (-)
-diff_epsilon_d = np.zeros([len(t), 1])	# 開口比誤差 (%)
+diff_epsilon_d = np.zeros([len(t), 1])		# 開口比誤差 (%)
 
 # C*csvと比熱比csvを読み込み
-df_c_star = pd.read_csv('cstar.csv', header=0, index_col=0)
-df_gamma = pd.read_csv('gamma.csv', header=0, index_col=0)
+df_c_star = pd.read_csv('cstar.csv', header=0, index_col=0, dtype=np.float64)
+df_gamma = pd.read_csv('gamma.csv', header=0, index_col=0, dtype=np.float64)
 
 # シミュレーション (1ステップ目)
 m_ox[0, 0] = 0
 P_t[0, 0] = (P_t_f - P_t_i) * 0 / t_b_d + P_t_i
-P_c[0, 0] = 2.59134450459945
+P_c[0, 0] = 2.591
 if P_t[0, 0] > P_c[0, 0]:
 	diff_P = P_t[0, 0] - P_c[0, 0]
 else:
@@ -79,16 +78,16 @@ G_ox[0, 0] = 4 * m_dot_ox[0, 0] / (N_port * math.pi *(D_f[0, 0] * 1e-3)**2)
 r_dot[0, 0] = a * G_ox[0, 0]**n * 1e3
 m_dot_f[0, 0] = L_f * 1e-3 * math.pi * D_f[0, 0] * 1e-3 * rho_f * r_dot[0, 0] * 1e-3 * N_port
 o_f[0, 0] = m_dot_ox[0, 0] / m_dot_f[0, 0]
-if np.round(o_f[0, 0], 1) < 0.5:
+if np.round(o_f[0, 0], 1) <= 0.5:
 	index_o_f = 0.5
-elif np.round(o_f[0, 0], 1) > 20:
+elif np.round(o_f[0, 0], 1) >= 20:
 	index_o_f = 20
 else:
 	index_o_f = np.round(o_f[0, 0], 1)
-if np.round(P_c[0, 0], 1) < 0.5:
+if np.round(P_c[0, 0], 1) <= 0.5:
 	index_P_c = 0.5
-elif np.round(P_c[0, 0], 1) > 5:
-	index_P_c = 5
+elif np.round(P_c[0, 0], 1) >= 5:
+	index_P_c = 5.0
 else:
 	index_P_c = np.round(P_c[0, 0], 1)
 eta_c_star_c_star[0, 0] = eta_c_star * (df_c_star.at[index_o_f, str(index_P_c)] \
@@ -104,12 +103,12 @@ C_f[0, 0] = math.sqrt(2 * gamma[0, 0]**2 / (gamma[0, 0] - 1) * ((2 / (gamma[0, 0
 F_t[0, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[0, 0] * P_c[0, 0] * (math.pi * D_t_i**2 / 4)
 I_t[0, 0] = 0
 
-m1 = LpProblem() # 数理モデル: 燃焼室圧最適化
-x1 = LpVariable('P_c', lowBound=0) # 変数: 燃焼室圧
-m1 += (x1 - (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2))) / (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2)) * 100 # 目的関数
-m1 += (x1 - (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2))) / (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2)) * 100 >= 0 # 制約条件
-m1.solve() # ソルバーの実行
-P_c[0, 0] = value(x1)
+def f(x1):
+	return(abs((x1 - (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2))) / (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2)) * 100)) # 目的関数
+res = minimize_scalar(f, bounds=(0, 5.0), method="bounded")
+P_c[0, 0] = res.x
+# plt.plot(t, ((t - (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2))) / (4 * eta_c_star_c_star[0, 0] * (m_dot_ox[0, 0] + m_dot_f[0, 0]) / (math.pi * D_t[0, 0]**2)) * 100))
+# plt.show()
 
 def f(x2):
 	return(abs((((((2 / (gamma[0, 0] + 1))**(1 / (gamma[0, 0] - 1))) * ((P_c[0, 0] / x2)**(1 / gamma[0, 0])) / math.sqrt((gamma[0, 0] + 1) / (gamma[0, 0] - 1) * (1 - (P_e[0, 0] / P_c[0, 0])**((gamma[0, 0] - 1) / gamma[0, 0])))) - (D_e**2 / D_t_i**2)) / (D_e**2 / D_t_i**2) * 100))) # 目的関数
@@ -117,13 +116,67 @@ res = minimize_scalar(f, bounds=(0, 0.2), method="bounded")
 P_e[0, 0] = res.x
 epsilon_d[0, 0] = res.fun
 
-# # シミュレーション (2ステップ目)
-# m_ox[1, 0] = 0
-# m = LpProblem() # 数理モデル
-# x = LpVariable('P_c', lowBound=0) # 変数
-# m += (x - (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2))) / (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2)) * 100 # 目的関数
-# m.solve() # ソルバーの実行
-# P_c[1, 0] = value(x)
+print(P_c[0, 0])
+print(P_e[0, 0])
+
+# シミュレーション (2ステップ目)
+m_ox[1, 0] = m_ox[0, 0] + m_dot_ox[0, 0] * Ts/2
+P_t[1, 0] = (P_t_f - P_t_i) * 0 / t_b_d + P_t_i
+P_c[1, 0] = P_c[0, 0]
+if P_t[1, 0] > P_c[1, 0]:
+	diff_P = P_t[1, 0] - P_c[1, 0]
+else:
+	diff_P = 0
+if m_ox[1, 0] <= V_ox_i * rho_ox * 1e-6:
+	m_dot_ox[1, 0] = C_d * (math.pi / 4 * (D_o * 1e-3)**2) * math.sqrt(2 * rho_ox * diff_P * 1e6)
+else:
+	m_dot_ox[1, 0] = 0
+m_f[1, 0] = m_f[0, 0] + m_dot_f[0, 0] * Ts/2
+D_f[1, 0] = math.sqrt(4 * m_f[1, 0] / (N_port * math.pi * rho_f * L_f * 1e-3) + (D_f_i * 1e-3)**2) * 1e3
+G_ox[1, 0] = 4 * m_dot_ox[1, 0] / (N_port * math.pi *(D_f[1, 0] * 1e-3)**2)
+r_dot[1, 0] = a * G_ox[1, 0]**n * 1e3
+m_dot_f[1, 0] = L_f * 1e-3 * math.pi * D_f[1, 0] * 1e-3 * rho_f * r_dot[1, 0] * 1e-3 * N_port
+o_f[1, 0] = m_dot_ox[1, 0] / m_dot_f[1, 0]
+if np.round(o_f[1, 0], 1) <= 0.5:
+	index_o_f = 0.5
+elif np.round(o_f[1, 0], 1) >= 20:
+	index_o_f = 20
+else:
+	index_o_f = np.round(o_f[1, 0], 1)
+if np.round(P_c[1, 0], 1) <= 0.5:
+	index_P_c = 0.5
+elif np.round(P_c[1, 0], 1) >= 5:
+	index_P_c = 5.0
+else:
+	index_P_c = np.round(P_c[1, 0], 1)
+eta_c_star_c_star[1, 0] = eta_c_star * (df_c_star.at[index_o_f, str(index_P_c)] \
+	+ (o_f[1, 0] - index_o_f) / 0.1 * (df_c_star.at[(index_o_f + 0.1), str(index_P_c)] - df_c_star.at[index_o_f, str(index_P_c)]) \
+	+ (P_c[1, 0] - index_P_c) / 0.1 * (df_c_star.at[index_o_f, str(index_P_c + 0.1)] - df_c_star.at[index_o_f, str(index_P_c)]))
+gamma[1, 0] = df_gamma.at[index_o_f, str(index_P_c)] \
+	+ (o_f[1, 0] - index_o_f) / 0.1 * (df_gamma.at[(index_o_f + 0.1), str(index_P_c)] - df_gamma.at[index_o_f, str(index_P_c)]) \
+	+ (P_c[1, 0] - index_P_c) / 0.1 * (df_gamma.at[index_o_f, str(index_P_c + 0.1)] - df_gamma.at[index_o_f, str(index_P_c)])
+D_t[1, 0] = D_t[0, 0] - r_dot_n * Ts
+P_e[1, 0] = P_e[0, 0]
+C_f[1, 0] = math.sqrt(2 * gamma[1, 0]**2 / (gamma[1, 0] - 1) * ((2 / (gamma[1, 0] + 1))**((gamma[1, 0] + 1) / (gamma[1, 0] - 1))) * (1 - (P_e[1, 0] / P_c[1, 0])**((gamma[1, 0] - 1) / gamma[1, 0]))) \
+	+ ((P_e[1, 0] - P_o) / P_c[1, 0]) * ((D_e**2) / D_t_i**2)
+F_t[1, 0] = ((1 * math.cos(math.radians(alpha))) / 2) * C_f[1, 0] * P_c[1, 0] * (math.pi * D_t_i**2 / 4)
+I_t[1, 0] = I_t[0, 0] + (F_t[0, 0] + F_t[1, 0]) * Ts/2
+
+def f(x1):
+	return(abs((x1 - (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2))) / (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2)) * 100)) # 目的関数
+res = minimize_scalar(f, bounds=(0, 5.0), method="bounded")
+P_c[1, 0] = res.x
+# plt.plot(t, ((t - (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2))) / (4 * eta_c_star_c_star[1, 0] * (m_dot_ox[1, 0] + m_dot_f[1, 0]) / (math.pi * D_t[1, 0]**2)) * 100))
+# plt.show()
+
+def f(x2):
+	return(abs((((((2 / (gamma[1, 0] + 1))**(1 / (gamma[1, 0] - 1))) * ((P_c[1, 0] / x2)**(1 / gamma[1, 0])) / math.sqrt((gamma[1, 0] + 1) / (gamma[1, 0] - 1) * (1 - (P_e[1, 0] / P_c[1, 0])**((gamma[1, 0] - 1) / gamma[1, 0])))) - (D_e**2 / D_t_i**2)) / (D_e**2 / D_t_i**2) * 100))) # 目的関数
+res = minimize_scalar(f, bounds=(0, 0.2), method="bounded")
+P_e[1, 0] = res.x
+epsilon_d[1, 0] = res.fun
+
+print(P_c[1, 0])
+print(P_e[1, 0])
 
 # # シミュレーション (3ステップ目以降)
 # for k in range(2, len(t)):
