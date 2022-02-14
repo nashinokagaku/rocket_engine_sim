@@ -1,4 +1,4 @@
-*.txt
-pdf/
+memo.txt
+fig/
 pulptest.py
 scipyoptimization.py
