@@ -8,6 +8,7 @@
 - pandas
 - matplotlib
 - Scipy
+- Jupter notebook
 
 ## プログラムの説明
 - pe_iteration.py
@@ -23,3 +24,7 @@ Excel版との整合性を確認済みです．
 バージョン1をリリースしました．
 計算時間は14秒です(M1 mac OSX, メモリ16 GB)．
 Excel版との整合性を確認中です．
+
+- enginesim.ipynb
+
+pe_iteration.pyとtb_iteration.pyを同時に実行できるJupyter notebookです．
