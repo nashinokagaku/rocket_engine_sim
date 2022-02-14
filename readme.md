@@ -23,11 +23,3 @@ Excel版との整合性を確認済みです．
 バージョン1をリリースしました．
 計算時間は14秒です(M1 mac OSX, メモリ16 GB)．
 Excel版との整合性を確認中です．
-
-- pulptest.py
-
-PuLPを用いた線形最適化のテストです．
-
-- scipyoptimizationtest.py
-
-Scipyを用いた非線形最適化のテストです．
