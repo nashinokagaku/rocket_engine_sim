@@ -1,0 +1,4 @@
+*.txt
+pdf/
+pulptest.py
+scipyoptimization.py
