@@ -13,7 +13,7 @@ This is a repository for creating combustion simulations of hybrid rocket engine
 
 ## Program description
 
--pe_iteration.py
+- pe_iteration.py
 
 Optimizes the combustion chamber pressure and nozzle exit pressure. Version 1 has been released. The calculation time is 1.3 seconds (M1 mac OSX, 16 GB memory). It has been checked for consistency with the Excel version.
 
