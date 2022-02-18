@@ -11,7 +11,7 @@ This is a repository for creating combustion simulations of hybrid rocket engine
 - Scipy
 - Jupter notebook
 
-# Program description
+## Program description
 
 -pe_iteration.py
 
